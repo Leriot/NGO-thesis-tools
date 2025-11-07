@@ -1,0 +1,132 @@
+# Academic Web Scraper Configuration
+# For NGO Network Analysis Thesis Project
+
+# Rate Limiting and Politeness
+rate_limiting:
+  requests_per_minute: 30
+  delay_between_requests: 2.0  # seconds
+  delay_on_error: 10.0  # seconds to wait after encountering an error
+  max_retries: 3
+  timeout: 30  # seconds
+
+# User Agent for Academic Research
+user_agent: "AcademicResearch-NGONetworkAnalysis/1.0 (498079@mail.muni.cz; Thesis research on Czech climate NGO networks)"
+
+# Content Types to Scrape
+content_types:
+  - text/html
+  - application/pdf
+  - application/msword
+  - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+  - application/vnd.ms-excel
+  - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+# File Extensions to Download
+download_extensions:
+  - .pdf
+  - .doc
+  - .docx
+  - .xls
+  - .xlsx
+
+# URL Patterns to Exclude
+url_exclusions:
+  - /admin/
+  - /wp-admin/
+  - /wp-login/
+  - /login/
+  - /signin/
+  - /register/
+  - /cart/
+  - /checkout/
+  - /account/
+  - /api/
+  - /feed/
+  - /comments/
+  - javascript:
+  - mailto:
+  - tel:
+
+# URL Patterns with Priority (for targeted scraping)
+priority_patterns:
+  high:
+    - /publikace/
+    - /publications/
+    - /tiskove-zpravy/
+    - /press-release/
+    - /aktuality/
+    - /news/
+    - /clanky/
+    - /articles/
+    - /o-nas/
+    - /about/
+    - /team/
+    - /lide/
+    - /people/
+    - /kontakt/
+    - /contact/
+  medium:
+    - /akce/
+    - /events/
+    - /kampane/
+    - /campaigns/
+    - /projekty/
+    - /projects/
+  low:
+    - /galerie/
+    - /gallery/
+    - /foto/
+    - /photos/
+
+# Crawl Depth Settings
+crawl:
+  max_depth: 3
+  max_pages_per_site: 500
+  follow_external_links: false  # Only follow internal links
+  respect_robots_txt: true
+
+# Storage Settings
+storage:
+  save_html: true
+  save_documents: true
+  compress_html: false
+  create_link_graph: true
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  console_output: true
+  file_output: true
+  log_requests: true
+  log_errors: true
+
+# Session Management
+session:
+  save_progress: true
+  progress_file: data/metadata/scraping_progress.json
+  checkpoint_interval: 50  # Save progress every N pages
+
+# Content Extraction
+extraction:
+  extract_links: true
+  extract_metadata: true
+  extract_text: true
+  extract_dates: true
+  detect_language: false
+
+# HTML Parsing
+parsing:
+  parser: html.parser  # Options: html.parser, lxml, html5lib
+  encoding: utf-8
+
+# Performance
+performance:
+  max_concurrent_requests: 1  # Sequential for politeness
+  connection_pool_size: 10
+
+# Data Quality
+quality:
+  min_content_length: 100  # Minimum characters for a valid page
+  deduplicate_urls: true
+  normalize_urls: true
+  check_content_hash: true  # Avoid duplicate content

@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data
+data/raw/*/
+data/metadata/*/
+
+# Keep directory structure but ignore contents
+!data/raw/.gitkeep
+!data/metadata/.gitkeep
+!data/logs/.gitkeep
+
+# Logs
+data/logs/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scraped content (large files)
+*.pdf
+*.doc
+*.docx
+
+# Temporary files
+*.tmp
+*.temp
+
+# Environment variables
+.env
+.env.local
