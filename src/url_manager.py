@@ -176,12 +176,19 @@ class URLManager:
         Returns:
             True if URL should be excluded
         """
-        url_lower = url.lower()
-        for pattern in exclusion_patterns:
-            if pattern.lower() in url_lower:
-                logger.debug(f"URL excluded by pattern '{pattern}': {url}")
-                return True
-        return False
+        try:
+            url_lower = url.lower()
+            for pattern in exclusion_patterns:
+                if not isinstance(pattern, str):
+                    logger.warning(f"Non-string pattern in exclusion_patterns: {type(pattern)}")
+                    continue
+                if pattern.lower() in url_lower:
+                    logger.debug(f"URL excluded by pattern '{pattern}': {url}")
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"Error in should_exclude_url for {url}: {e}")
+            return False  # Don't exclude on error
 
     def get_url_priority(self, url: str, priority_patterns: Dict[str, List[str]]) -> int:
         """
@@ -195,25 +202,38 @@ class URLManager:
         Returns:
             Priority level (0=high, 1=medium, 2=low, 3=default)
         """
-        url_lower = url.lower()
+        try:
+            url_lower = url.lower()
 
-        # Check high priority
-        for pattern in priority_patterns.get('high', []):
-            if pattern.lower() in url_lower:
-                return 0
+            # Check high priority
+            for pattern in priority_patterns.get('high', []):
+                if not isinstance(pattern, str):
+                    logger.warning(f"Non-string pattern in priority_patterns['high']: {type(pattern)}")
+                    continue
+                if pattern.lower() in url_lower:
+                    return 0
 
-        # Check medium priority
-        for pattern in priority_patterns.get('medium', []):
-            if pattern.lower() in url_lower:
-                return 1
+            # Check medium priority
+            for pattern in priority_patterns.get('medium', []):
+                if not isinstance(pattern, str):
+                    logger.warning(f"Non-string pattern in priority_patterns['medium']: {type(pattern)}")
+                    continue
+                if pattern.lower() in url_lower:
+                    return 1
 
-        # Check low priority
-        for pattern in priority_patterns.get('low', []):
-            if pattern.lower() in url_lower:
-                return 2
+            # Check low priority
+            for pattern in priority_patterns.get('low', []):
+                if not isinstance(pattern, str):
+                    logger.warning(f"Non-string pattern in priority_patterns['low']: {type(pattern)}")
+                    continue
+                if pattern.lower() in url_lower:
+                    return 2
 
-        # Default priority
-        return 3
+            # Default priority
+            return 3
+        except Exception as e:
+            logger.error(f"Error in get_url_priority for {url}: {e}")
+            return 3  # Return default priority on error
 
     def add_url(self, url: str, depth: int = 0, parent_url: Optional[str] = None,
                 priority: Optional[int] = None) -> bool:

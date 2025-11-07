@@ -290,28 +290,42 @@ class NGOScraper:
                     internal_links = links
 
                 for link in internal_links:
-                    link_url = link['url']
+                    try:
+                        link_url = link['url']
 
-                    # Skip if matches exclusion pattern
-                    if self.url_manager.should_exclude_url(
-                        link_url,
-                        self.config['url_exclusions']
-                    ):
-                        continue
+                        # Skip if matches exclusion pattern
+                        if self.url_manager.should_exclude_url(
+                            link_url,
+                            self.config['url_exclusions']
+                        ):
+                            continue
 
-                    # Determine priority
-                    priority = self.url_manager.get_url_priority(
-                        link_url,
-                        self.config['priority_patterns']
-                    )
+                        # Determine priority
+                        priority = self.url_manager.get_url_priority(
+                            link_url,
+                            self.config['priority_patterns']
+                        )
 
-                    # Add to queue
-                    self.url_manager.add_url(
-                        link_url,
-                        depth=depth + 1,
-                        parent_url=url,
-                        priority=priority
-                    )
+                        # Add to queue
+                        self.url_manager.add_url(
+                            link_url,
+                            depth=depth + 1,
+                            parent_url=url,
+                            priority=priority
+                        )
+                    except Exception as e:
+                        logger.error(f"Error processing link {link.get('url', 'unknown')}: {e}", exc_info=True)
+                        # Try to add with default priority if link_url was extracted
+                        try:
+                            if 'link_url' in locals():
+                                self.url_manager.add_url(
+                                    link_url,
+                                    depth=depth + 1,
+                                    parent_url=url,
+                                    priority=3  # Default low priority
+                                )
+                        except:
+                            pass  # Skip this link if it still fails
 
             # Extract and save document links
             documents = self.content_extractor.extract_document_links(
@@ -321,13 +335,16 @@ class NGOScraper:
             )
 
             for doc in documents:
-                # Add document URL to queue with high priority for download
-                self.url_manager.add_url(
-                    doc['url'],
-                    depth=depth,
-                    parent_url=url,
-                    priority=0  # High priority for documents
-                )
+                try:
+                    # Add document URL to queue with high priority for download
+                    self.url_manager.add_url(
+                        doc['url'],
+                        depth=depth,
+                        parent_url=url,
+                        priority=0  # High priority for documents
+                    )
+                except Exception as e:
+                    logger.error(f"Error queuing document {doc.get('url', 'unknown')}: {e}")
 
             # Extract metadata if configured
             if self.config['extraction']['extract_metadata']:
