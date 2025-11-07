@@ -375,7 +375,7 @@ This project is intended for academic research purposes.
 
 For questions or issues:
 - Email: 498079@mail.muni.cz
-- Repository: [GitHub URL]
+- Repository: https://github.com/Leriot/leriot-web-scraper-for-thesis
 
 ## Acknowledgments
 
