@@ -247,7 +247,7 @@ This scraper follows best practices for ethical web scraping:
 
 ### 1. User Agent Identification
 - Clear identification as academic research
-- Contact email included: `498079@mail.muni.cz`
+- Contact email included: --
 
 ### 2. Robots.txt Compliance
 - Automatically checks and respects `robots.txt`
@@ -338,7 +338,7 @@ pytest tests/
 
 ## Target Organizations
 
-This scraper is configured for 20 Czech climate NGOs:
+This scraper is configured for 19 Czech climate NGOs:
 
 1. Aliance pro energetickou soběstačnost
 2. Arnika
