@@ -189,6 +189,75 @@ scraper.scrape_from_config(
 )
 ```
 
+### Testing URLs
+
+Before running full scrapes, you can test individual URLs to see what would be scraped:
+
+**Test a single URL:**
+```bash
+python -m src.test_scraper https://www.hnutiduha.cz
+```
+
+This will show you:
+- ✓ Robots.txt compliance check
+- ✓ HTTP status and content type
+- ✓ Number of links found (internal/external)
+- ✓ Documents found (PDFs, DOCs, etc.)
+- ✓ Extracted metadata
+- ✓ Sample links and documents
+
+**Test multiple URLs:**
+```bash
+python -m src.test_scraper https://site1.org https://site2.org https://site3.org
+```
+
+**Test URLs from a file:**
+```bash
+python -m src.test_scraper --file test_urls.txt
+```
+
+**Skip robots.txt check (for testing only):**
+```bash
+python -m src.test_scraper https://example.org --no-robots
+```
+
+**Example output:**
+```
+================================================================================
+Testing URL: https://www.hnutiduha.cz
+================================================================================
+
+Step 1: Checking robots.txt compliance...
+  ✓ Scraping allowed by robots.txt
+
+Step 2: Fetching URL...
+  Status Code: 200
+  Content Type: text/html; charset=UTF-8
+  Content Length: 45,231 bytes
+
+Step 3: Analyzing content...
+  Total Links: 127
+    - Internal: 89
+    - External: 38
+  Documents Found: 5
+    Types: {'.pdf': 5}
+
+Step 4: Extracted metadata...
+Field            Value
+---------------  ----------------------------------------
+title            Hnutí DUHA - Friends of the Earth CZ
+description      Ekologická organizace...
+language         cs
+
+Page Type: homepage
+```
+
+This is **extremely useful** for:
+- Testing new NGO URLs before adding to config
+- Debugging scraping issues
+- Verifying robots.txt compliance
+- Previewing what will be scraped
+
 ## Output Structure
 
 Scraped data is organized as follows:
