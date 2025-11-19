@@ -481,8 +481,8 @@ class NGOScraper:
 
                 depth, url, parent_url = next_url_data
 
-                # Check if we've reached the limit
-                if len(self.url_manager.visited_urls) >= max_pages:
+                # Check if we've reached the limit (if set)
+                if max_pages is not None and len(self.url_manager.visited_urls) >= max_pages:
                     logger.info(f"Reached max pages limit: {max_pages}")
                     break
 
