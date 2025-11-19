@@ -47,7 +47,11 @@ class URLManager:
             'total_visited': 0,
             'total_failed': 0,
             'total_skipped': 0,
-            'duplicate_count': 0
+            'duplicate_count': 0,
+            'skipped_depth': 0,
+            'skipped_max_pages': 0,
+            'skipped_excluded': 0,
+            'skipped_invalid': 0
         }
 
     def _normalize_domain(self, domain: str) -> str:
@@ -183,6 +187,7 @@ class URLManager:
                     logger.warning(f"Non-string pattern in exclusion_patterns: {type(pattern)}")
                     continue
                 if pattern.lower() in url_lower:
+                    self.stats['skipped_excluded'] += 1
                     logger.debug(f"URL excluded by pattern '{pattern}': {url}")
                     return True
             return False
@@ -253,6 +258,8 @@ class URLManager:
         normalized_url = self.normalize_url(url, parent_url)
         if not normalized_url:
             self.stats['total_skipped'] += 1
+            self.stats['skipped_invalid'] += 1
+            logger.debug(f"Invalid URL skipped: {url}")
             return False
 
         # Check if already visited or in queue
@@ -265,13 +272,15 @@ class URLManager:
         # Check depth limit
         if depth > self.max_depth:
             self.stats['total_skipped'] += 1
-            logger.debug(f"URL exceeds max depth ({depth} > {self.max_depth}): {normalized_url}")
+            self.stats['skipped_depth'] += 1
+            logger.info(f"URL exceeds max depth ({depth} > {self.max_depth}): {normalized_url}")
             return False
 
         # Check page limit
         if len(self.visited_urls) >= self.max_pages:
             self.stats['total_skipped'] += 1
-            logger.debug(f"Max pages limit reached: {self.max_pages}")
+            self.stats['skipped_max_pages'] += 1
+            logger.warning(f"Max pages limit reached ({self.max_pages}): skipping {normalized_url}")
             return False
 
         # Add to queue
