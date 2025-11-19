@@ -275,12 +275,19 @@ class NGOScraper:
                 check_duplicates = self.config['quality']['check_content_hash']
                 self.storage.save_page(url, content, encoding, check_duplicates)
 
+            # Extract metadata (including publication date)
+            publication_date = None
+            if self.config['extraction']['extract_metadata']:
+                metadata = self.content_extractor.extract_metadata(html, url)
+                publication_date = metadata.get('published_date')
+                logger.debug(f"Publication date for {url}: {publication_date or 'N/A'}")
+
             # Extract links
             if self.config['extraction']['extract_links']:
                 links = self.content_extractor.extract_links(html, url)
 
-                # Store links for network analysis
-                self.storage.add_links(url, links)
+                # Store links for network analysis (with publication date)
+                self.storage.add_links(url, links, publication_date)
                 self.stats['total_links'] += len(links)
 
                 # Add internal links to queue
@@ -481,8 +488,8 @@ class NGOScraper:
 
                 depth, url, parent_url = next_url_data
 
-                # Check if we've reached the limit
-                if len(self.url_manager.visited_urls) >= max_pages:
+                # Check if we've reached the limit (if set)
+                if max_pages is not None and len(self.url_manager.visited_urls) >= max_pages:
                     logger.info(f"Reached max pages limit: {max_pages}")
                     break
 

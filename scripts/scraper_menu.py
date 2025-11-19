@@ -58,8 +58,9 @@ class ScraperMenu:
         print("    [8] Add New Organization")
         print("  TOOLS:")
         print("    [9] Generate Pagination Seeds")
-        print("    [10] Run Configuration Diagnostics")
-        print("    [11] View Statistics")
+        print("    [10] Discover Sitemap URLs")
+        print("    [11] Run Configuration Diagnostics")
+        print("    [12] View Statistics")
         print("  [0] Exit")
         print()
 
@@ -515,6 +516,52 @@ class ScraperMenu:
 
         input("\nPress ENTER to continue...")
 
+    def discover_sitemap(self):
+        """Discover sitemap.xml and add URLs as seeds"""
+        self.clear_screen()
+        self.print_header()
+        print("DISCOVER SITEMAP URLs\n")
+
+        print("This tool automatically discovers sitemap.xml and adds all URLs as seeds.")
+        print("This ensures comprehensive coverage on first scrape.\n")
+
+        ngo_name = self.get_input("NGO name (must match url_seeds.csv)")
+        if not ngo_name:
+            return
+
+        base_url = self.get_input("Base URL (e.g., https://www.hnutiduha.cz)")
+        if not base_url:
+            return
+
+        # Optional filters
+        print("\nOptional filters:")
+        min_priority = self.get_input("Minimum priority (0.0-1.0, or ENTER for all)", "")
+        depth = self.get_input("Depth limit", "5")
+
+        cmd = [
+            "python", "scripts/discover_sitemap.py",
+            ngo_name,
+            base_url,
+            "--depth", depth
+        ]
+
+        if min_priority:
+            cmd.extend(["--min-priority", min_priority])
+
+        # Dry run option
+        if self.confirm("\nDry run (preview without saving)?"):
+            cmd.append("--dry-run")
+
+        print("\nDiscovering sitemap...\n")
+
+        try:
+            subprocess.run(cmd, cwd=Path(__file__).parent.parent)
+            print("\n✓ Done!")
+        except Exception as e:
+            print(f"\n✗ Error: {e}")
+
+        input("\nPress ENTER to continue...")
+
     def run_diagnostics(self):
         """Run configuration diagnostics"""
         self.clear_screen()
@@ -894,8 +941,10 @@ class ScraperMenu:
             elif choice == "9":
                 self.generate_pagination_seeds()
             elif choice == "10":
-                self.run_diagnostics()
+                self.discover_sitemap()
             elif choice == "11":
+                self.run_diagnostics()
+            elif choice == "12":
                 self.view_statistics()
             elif choice == "0":
                 if self.confirm("\nExit scraper menu?"):

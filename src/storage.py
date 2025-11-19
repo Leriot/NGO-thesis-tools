@@ -254,13 +254,14 @@ class StorageManager:
             self.stats['errors'] += 1
             return None
 
-    def add_links(self, source_url: str, links: List[Dict]):
+    def add_links(self, source_url: str, links: List[Dict], publication_date: Optional[str] = None):
         """
         Add extracted links to storage.
 
         Args:
             source_url: URL where links were found
             links: List of link dicts with 'url', 'text', 'type' keys
+            publication_date: Publication date of the source page (ISO format)
         """
         for link in links:
             self.links.append({
@@ -268,6 +269,7 @@ class StorageManager:
                 'target_url': link.get('url'),
                 'anchor_text': link.get('text', ''),
                 'link_type': link.get('type', 'unknown'),  # internal/external
+                'publication_date': publication_date or 'N/A',
                 'timestamp': datetime.now().isoformat()
             })
             self.stats['links_extracted'] += 1
