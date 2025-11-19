@@ -80,10 +80,10 @@ priority_patterns:
 
 # Crawl Depth Settings
 crawl:
-  max_depth: 3
-  max_pages_per_site: 500
+  max_depth: 5  # Increased to handle deep pagination structures
+  max_pages_per_site: null  # No limit - cleanup/filtering done later
   follow_external_links: false  # Only follow internal links
-  respect_robots_txt: true
+  respect_robots_txt: true  # Respects crawl-delay from robots.txt
 
 # Storage Settings
 storage:
