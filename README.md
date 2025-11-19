@@ -133,7 +133,45 @@ See the full file for all available options.
 
 ## Usage
 
-### Basic Usage
+### Interactive Menu (Recommended for Beginners)
+
+The easiest way to use this scraper is through the interactive text-based UI:
+
+```bash
+python scripts/scraper_menu.py
+```
+
+This provides a full-featured menu interface with the following options:
+
+**Main Menu:**
+1. **Run Scraper** - Start a new scraping session with preview
+2. **View Recent Scraping Sessions** - See scraping history
+3. **Resume Interrupted Session** - Continue a stopped scrape
+4. **Test URL** - Preview what will be scraped from a URL
+5. **Configuration** - View/edit current settings
+
+**Organization Management:**
+6. **View Organizations & History** - See all NGOs with:
+   - Number of seed URLs
+   - Total sessions and pages scraped
+   - Last scrape date
+   - Completion status
+7. **Manage Seed URLs** - View and add seed URLs for organizations
+8. **Add New Organization** - Wizard to add a new NGO to the system
+
+**Utilities:**
+9. **Generate Pagination Seeds** - Auto-generate URLs for paginated content
+10. **Run Configuration Diagnostics** - Check for config issues
+11. **View Statistics** - See aggregate scraping statistics
+12. **Exit**
+
+The menu provides:
+- ✅ **Pre-scrape preview** - Shows robots.txt delay, seed URLs, and configuration
+- ✅ **Organization tracking** - Monitor which NGOs have been scraped
+- ✅ **Visual feedback** - Progress bars and real-time statistics
+- ✅ **Guided workflows** - Step-by-step wizards for complex tasks
+
+### Command Line Usage
 
 Scrape all configured NGOs:
 
@@ -308,6 +346,103 @@ data/
     "links_extracted": 1850
   }
 }
+```
+
+## Data Cleanup & Processing
+
+After scraping, use the included data cleanup tools to prepare content for analysis.
+
+### Tool 1: PDF Text Extraction (`process_pdfs.py`)
+
+Extracts text from PDFs and identifies scanned documents needing OCR:
+
+```bash
+# Process all PDFs for an organization
+python scripts/process_pdfs.py --org "Hnutí DUHA"
+
+# Process all organizations
+python scripts/process_pdfs.py --all
+
+# List available data
+python scripts/process_pdfs.py --list
+```
+
+**What it does:**
+- ✅ Extracts text from PDFs using pdfplumber (preserves tables)
+- ✅ Removes repeated headers/footers (>50% page occurrence)
+- ✅ Collapses excessive whitespace
+- ✅ Quarantines image-based PDFs (<100 chars) for OCR
+
+**Output:**
+- `data/processed/{org}/{session}/extracted_text/` - Successfully extracted text files
+- `data/processed/{org}/{session}/needs_ocr/` - PDFs requiring OCR processing
+
+### Tool 2: Content Filtering (`filter_content.py`)
+
+Cleans HTML, removes duplicates, and filters for relevance to NGO network analysis:
+
+```bash
+# Process all HTML for an organization
+python scripts/filter_content.py --org "Hnutí DUHA"
+
+# Adjust filtering thresholds (stricter)
+python scripts/filter_content.py --org "Arnika" --min-score 10 --min-density 1.0
+
+# More lenient filtering
+python scripts/filter_content.py --org "Arnika" --min-score 3 --min-density 0.3
+```
+
+**What it does:**
+- ✅ Removes boilerplate (nav, footer, ads, menus)
+- ✅ Deduplicates using shingling + Jaccard similarity (85% threshold)
+- ✅ Scores relevance using Czech NGO keywords (cooperation, funding, policy actors)
+- ✅ Filters using dual criteria: raw score + density per 100 words
+
+**Output:**
+- `data/processed/{org}/{session}/relevant/` - Content passing filters (for analysis)
+- `data/processed/{org}/{session}/irrelevant/` - Filtered out content
+- `data/processed/{org}/{session}/duplicates/` - Duplicate pages (grouped by original)
+
+### Configuring Keywords
+
+Keywords for content filtering are defined in `config/content_filter_keywords.yaml`:
+
+```yaml
+keywords:
+  relations:
+    - root: "spoluprác"
+      weight: 3
+      variations: ["spolupráce", "spolupracovat", "spolupracující"]
+      description: "Cooperation, collaboration"
+
+    - root: "partner"
+      weight: 3
+      variations: ["partner", "partneři", "partnerství"]
+      description: "Partners, partnerships"
+```
+
+You can:
+- ✏️ Add new keywords and categories
+- ⚖️ Adjust weights (1-3) based on importance
+- 📝 Add variations to catch different word forms
+- 🎯 Customize thresholds in the `filtering` section
+
+**See `DATA_CLEANUP.md` for comprehensive documentation.**
+
+### Complete Workflow
+
+```bash
+# 1. Scrape data using interactive menu
+python scripts/scraper_menu.py
+
+# 2. Extract text from PDFs
+python scripts/process_pdfs.py --all
+
+# 3. Filter and clean HTML content
+python scripts/filter_content.py --all
+
+# 4. Use filtered data for LLM-based network analysis
+# (relevant content is in data/processed/*/relevant/)
 ```
 
 ## Ethical Compliance

@@ -4,6 +4,9 @@ httpx>=0.25.0
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
 
+# PDF Processing
+pdfplumber>=0.9.0
+
 # Configuration Management
 pyyaml>=6.0.1
 pandas>=2.1.0

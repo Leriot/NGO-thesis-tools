@@ -1,0 +1,268 @@
+# Content Filtering Keywords Configuration
+#
+# This file defines keywords and their weights for relevance scoring
+# in the content filtering process.
+#
+# Keywords are organized by category based on social science theory:
+# - Relations: Organizational networks and partnerships
+# - Funding: Resource dependency and financial ties
+# - Policy: Government actors and policy influence
+# - Actions: Activities and initiatives
+# - Topics: Domain-specific terms
+#
+# Each keyword can be a root (to catch variations) or full word
+# Weights: 1 (low) to 3 (high importance)
+
+keywords:
+  # ========================================
+  # RELATIONS (High Value - Core Network Ties)
+  # ========================================
+  relations:
+    # Cooperation and collaboration
+    - root: "spoluprác"
+      weight: 3
+      variations: ["spolupráce", "spolupracovat", "spolupracující", "spolupracoval"]
+      description: "Cooperation, collaboration"
+
+    - root: "partner"
+      weight: 3
+      variations: ["partner", "partneři", "partnerství", "partnerský", "partnera"]
+      description: "Partners, partnerships"
+
+    - root: "alianc"
+      weight: 3
+      variations: ["aliance", "aliancí"]
+      description: "Alliance"
+
+    - root: "koalic"
+      weight: 3
+      variations: ["koalice", "koaličn"]
+      description: "Coalition"
+
+    # Membership and structure
+    - root: "člen"
+      weight: 2
+      variations: ["člen", "členství", "členové", "členů", "člena"]
+      description: "Member, membership"
+
+    - root: "platform"
+      weight: 2
+      variations: ["platforma", "platformy", "platformě"]
+      description: "Platform"
+
+    - root: "síť"
+      weight: 2
+      variations: ["síť", "sítě", "sítí"]
+      description: "Network"
+
+    - root: "sdružen"
+      weight: 2
+      variations: ["sdružení", "sdružovat", "sdružuje"]
+      description: "Association, grouping"
+
+  # ========================================
+  # FUNDING (Resource Dependency)
+  # ========================================
+  funding:
+    - root: "grant"
+      weight: 3
+      variations: ["grant", "grantu", "grantů", "grantový"]
+      description: "Grant"
+
+    - root: "financ"
+      weight: 2
+      variations: ["financování", "financovat", "finance", "finanční"]
+      description: "Financing, financial"
+
+    - root: "dar"
+      weight: 2
+      variations: ["dar", "dárce", "dárců", "darovat"]
+      description: "Donation, donor"
+
+    - root: "nadac"
+      weight: 2
+      variations: ["nadace", "nadační"]
+      description: "Foundation"
+
+    - root: "fond"
+      weight: 2
+      variations: ["fond", "fondu", "fondů"]
+      description: "Fund"
+
+    - root: "dotac"
+      weight: 2
+      variations: ["dotace", "dotační", "dotovat"]
+      description: "Subsidy"
+
+    - root: "sponzor"
+      weight: 2
+      variations: ["sponzor", "sponzorovat", "sponzorství"]
+      description: "Sponsor"
+
+    - root: "podpora"
+      weight: 2
+      variations: ["podpora", "podpor", "podporovat", "podporuje"]
+      description: "Support, backing"
+
+  # ========================================
+  # POLICY ACTORS (Influence)
+  # ========================================
+  policy:
+    - root: "ministerstv"
+      weight: 3
+      variations: ["ministerstvo", "ministerstev", "ministerstva"]
+      description: "Ministry"
+
+    - root: "parlament"
+      weight: 2
+      variations: ["parlament", "parlamentu", "parlamentní"]
+      description: "Parliament"
+
+    - root: "senát"
+      weight: 2
+      variations: ["senát", "senátu", "senátní", "senátor"]
+      description: "Senate"
+
+    - root: "poslanec"
+      weight: 2
+      variations: ["poslanec", "poslance", "poslanců", "poslanecký"]
+      description: "Member of parliament"
+
+    - root: "vlád"
+      weight: 1
+      variations: ["vláda", "vládní", "vlády"]
+      description: "Government (low weight - common word)"
+
+    - root: "výbor"
+      weight: 1
+      variations: ["výbor", "výboru", "výborů"]
+      description: "Committee"
+
+    - root: "zákon"
+      weight: 1
+      variations: ["zákon", "zákona", "zákonů", "zákonný"]
+      description: "Law (low weight - common)"
+
+    - root: "návrh"
+      weight: 1
+      variations: ["návrh", "návrhu", "navrhovat", "navrhuje"]
+      description: "Proposal"
+
+    - root: "politk"
+      weight: 1
+      variations: ["politik", "politika", "politiky", "politický"]
+      description: "Politics, politician, policy"
+
+  # ========================================
+  # ACTIONS & ACTIVITIES
+  # ========================================
+  actions:
+    - root: "organiz"
+      weight: 1
+      variations: ["organizace", "organizovat", "organizuje", "organizační"]
+      description: "Organization, organize"
+
+    - root: "projekt"
+      weight: 1
+      variations: ["projekt", "projektu", "projektů", "projektový"]
+      description: "Project"
+
+    - root: "kampaň"
+      weight: 1
+      variations: ["kampaň", "kampaně", "kampaní"]
+      description: "Campaign"
+
+    - root: "akc"
+      weight: 1
+      variations: ["akce", "akcí", "akci"]
+      description: "Event, action"
+
+    - root: "iniciat"
+      weight: 2
+      variations: ["iniciativa", "iniciativy", "iniciovat"]
+      description: "Initiative"
+
+  # ========================================
+  # TOPICS (Domain Context)
+  # ========================================
+  topics:
+    - root: "klimat"
+      weight: 1
+      variations: ["klima", "klimatu", "klimatick"]
+      description: "Climate"
+
+    - root: "uhlí"
+      weight: 1
+      variations: ["uhlí", "uhelný", "uhelné"]
+      description: "Coal"
+
+    - root: "strategi"
+      weight: 1
+      variations: ["strategie", "strategický", "strategii"]
+      description: "Strategy"
+
+    - root: "envirom"
+      weight: 1
+      variations: ["environment", "enviromentální", "životní prostředí"]
+      description: "Environment"
+
+    - root: "ekolog"
+      weight: 1
+      variations: ["ekologie", "ekologický", "ekolog"]
+      description: "Ecology, ecological"
+
+# ========================================
+# Filtering Thresholds
+# ========================================
+filtering:
+  # Minimum raw score (total keyword points)
+  min_raw_score: 5
+
+  # Minimum density score (points per 100 words)
+  # This prevents long documents with few keywords from passing
+  min_density_score: 0.5
+
+  # Deduplication similarity threshold (Jaccard index)
+  similarity_threshold: 0.85
+
+# ========================================
+# Boilerplate Removal
+# ========================================
+boilerplate:
+  # Elements to remove (navigation, ads, etc.)
+  junk_terms:
+    - "nav"
+    - "footer"
+    - "header"
+    - "sidebar"
+    - "menu"
+    - "cookie"
+    - "banner"
+    - "ad-"
+    - "ads"
+    - "social"
+    - "share"
+    - "breadcrumb"
+    - "widget"
+    - "popup"
+    - "modal"
+    - "search"
+    - "promoted"
+    - "related"
+    - "archive"
+
+  # Elements to protect (content areas)
+  safe_terms:
+    - "layout"
+    - "wrapper"
+    - "container"
+    - "main"
+    - "body"
+    - "article"
+    - "node"
+    - "content"
+    - "page"
+    - "section"
+
+  # Link density threshold (>60% links = navigation)
+  link_density_threshold: 0.6
