@@ -461,13 +461,3 @@ If you use this scraper in your research, please cite:
 Thesis Research, Masaryk University.
 ```
 
-## Changelog
-
-### Version 1.0.0 (2024)
-- Initial release
-- Support for 20 Czech NGOs
-- Robots.txt compliance
-- Link extraction and classification
-- Document download
-- Session resumption
-- Comprehensive logging
