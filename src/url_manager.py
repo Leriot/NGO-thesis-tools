@@ -20,14 +20,14 @@ class URLManager:
     Tracks visited URLs and handles URL normalization.
     """
 
-    def __init__(self, base_domain: str, max_depth: int = 3, max_pages: int = 500):
+    def __init__(self, base_domain: str, max_depth: int = 3, max_pages: Optional[int] = None):
         """
         Initialize URL manager.
 
         Args:
             base_domain: Base domain to constrain crawling to
             max_depth: Maximum crawl depth
-            max_pages: Maximum pages to scrape per site
+            max_pages: Maximum pages to scrape per site (None = unlimited)
         """
         self.base_domain = self._normalize_domain(base_domain)
         self.max_depth = max_depth
@@ -276,8 +276,8 @@ class URLManager:
             logger.info(f"URL exceeds max depth ({depth} > {self.max_depth}): {normalized_url}")
             return False
 
-        # Check page limit
-        if len(self.visited_urls) >= self.max_pages:
+        # Check page limit (if set)
+        if self.max_pages is not None and len(self.visited_urls) >= self.max_pages:
             self.stats['total_skipped'] += 1
             self.stats['skipped_max_pages'] += 1
             logger.warning(f"Max pages limit reached ({self.max_pages}): skipping {normalized_url}")

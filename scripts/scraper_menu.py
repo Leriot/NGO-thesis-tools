@@ -45,14 +45,21 @@ class ScraperMenu:
     def print_menu(self):
         """Print main menu options"""
         print("\nMAIN MENU:")
-        print("  [1] Start New Scraping Session")
-        print("  [2] Resume Previous Session")
-        print("  [3] View Session Status")
-        print("  [4] List All Sessions")
-        print("  [5] Delete Session")
-        print("  [6] Generate Pagination Seeds")
-        print("  [7] Run Configuration Diagnostics")
-        print("  [8] View Statistics")
+        print("  SCRAPING:")
+        print("    [1] Start New Scraping Session")
+        print("    [2] Resume Previous Session")
+        print("  SESSIONS:")
+        print("    [3] View Session Status")
+        print("    [4] List All Sessions")
+        print("    [5] Delete Session")
+        print("  ORGANIZATIONS:")
+        print("    [6] View Organizations & History")
+        print("    [7] Manage Seed URLs")
+        print("    [8] Add New Organization")
+        print("  TOOLS:")
+        print("    [9] Generate Pagination Seeds")
+        print("    [10] Run Configuration Diagnostics")
+        print("    [11] View Statistics")
         print("  [0] Exit")
         print()
 
@@ -94,6 +101,82 @@ class ScraperMenu:
                 return False
             print("Please enter 'y' or 'n'")
 
+    def _show_scraping_preview(self, organization: Optional[str]):
+        """Show preview information before scraping"""
+        import pandas as pd
+        from urllib.parse import urlparse
+        import urllib.robotparser
+
+        try:
+            seeds_df = pd.read_csv('config/url_seeds.csv')
+
+            # Filter by organization if specified
+            if organization:
+                seeds_df = seeds_df[seeds_df['ngo_name'] == organization]
+
+            if len(seeds_df) == 0:
+                print("  ⚠ No seed URLs found for this organization")
+                return
+
+            print("\n" + "=" * 70)
+            print("SCRAPING PREVIEW")
+            print("=" * 70)
+
+            print(f"\nSeed URLs: {len(seeds_df)}")
+
+            # Get base domain from first seed
+            first_url = seeds_df.iloc[0]['url']
+            parsed = urlparse(first_url)
+            base_domain = parsed.netloc
+
+            print(f"Target domain: {base_domain}")
+
+            # Check robots.txt
+            robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
+            print(f"\nChecking robots.txt at {robots_url}...")
+
+            try:
+                rp = urllib.robotparser.RobotFileParser()
+                rp.set_url(robots_url)
+                rp.read()
+
+                # Check crawl delay
+                crawl_delay = rp.crawl_delay("*")
+                if crawl_delay:
+                    print(f"  ✓ Crawl-Delay: {crawl_delay} seconds (will be respected)")
+                else:
+                    print(f"  ✓ No crawl-delay specified (using config default: 2 seconds)")
+
+                # Check if homepage is allowed
+                if rp.can_fetch("*", first_url):
+                    print(f"  ✓ Scraping allowed for seed URLs")
+                else:
+                    print(f"  ⚠ WARNING: robots.txt may disallow some URLs")
+
+            except Exception as e:
+                print(f"  ⚠ Could not read robots.txt: {e}")
+                print(f"  → Will use default delay: 2 seconds")
+
+            # Show seed URL details
+            print(f"\nSeed URLs to be scraped:")
+            for i, (_, row) in enumerate(seeds_df.head(5).iterrows(), 1):
+                print(f"  [{i}] {row['url_type']}: {row['url']} (depth: {row['depth_limit']})")
+
+            if len(seeds_df) > 5:
+                print(f"  ... and {len(seeds_df) - 5} more")
+
+            print("\nConfiguration:")
+            print(f"  Max depth: 5")
+            print(f"  Max pages: unlimited (cleanup done later)")
+            print(f"  Rate limit: Based on robots.txt or 2s default")
+
+            print("=" * 70)
+
+        except FileNotFoundError as e:
+            print(f"  ⚠ Error loading config: {e}")
+        except Exception as e:
+            print(f"  ⚠ Error gathering preview: {e}")
+
     def start_new_session(self):
         """Start a new scraping session"""
         self.clear_screen()
@@ -112,6 +195,10 @@ class ScraperMenu:
 
         # Get notes
         notes = self.get_input("Session notes (optional)", "")
+
+        # Get preview information
+        print("\nGathering information about target site...")
+        self._show_scraping_preview(org)
 
         # Confirm
         print("\n" + "=" * 70)
@@ -499,6 +586,286 @@ class ScraperMenu:
 
         input("\nPress ENTER to continue...")
 
+    def view_organizations(self):
+        """View all organizations and their scraping history"""
+        self.clear_screen()
+        self.print_header()
+        print("ORGANIZATIONS & HISTORY\n")
+
+        # Load organizations from config
+        import csv
+        import pandas as pd
+
+        try:
+            ngo_df = pd.read_csv('config/ngo_list.csv')
+            seeds_df = pd.read_csv('config/url_seeds.csv')
+        except FileNotFoundError as e:
+            print(f"✗ Error loading config files: {e}")
+            input("\nPress ENTER to continue...")
+            return
+
+        # Get organizations from sessions
+        scraped_orgs = self.session_manager.get_all_organizations()
+
+        print(f"Found {len(ngo_df)} organizations in config, {len(scraped_orgs)} with scraping history\n")
+
+        print("=" * 100)
+        print(f"{'Organization':<30} {'Seeds':<8} {'Sessions':<10} {'Pages':<10} {'Last Scrape':<20} {'Status':<10}")
+        print("=" * 100)
+
+        for _, row in ngo_df.iterrows():
+            org_name = row['canonical_name']
+
+            # Count seeds
+            org_seeds = seeds_df[seeds_df['ngo_name'] == org_name]
+            seed_count = len(org_seeds)
+
+            # Get stats if scraped
+            if org_name in scraped_orgs:
+                stats = self.session_manager.get_organization_stats(org_name)
+                sessions = stats['total_sessions']
+                pages = stats['total_pages_scraped']
+
+                if stats['last_scrape_date']:
+                    last_scrape = stats['last_scrape_date'].strftime('%Y-%m-%d %H:%M')
+                else:
+                    last_scrape = 'Never'
+
+                if stats['completed_sessions'] > 0:
+                    status = '✓ Complete'
+                elif stats['total_sessions'] > 0:
+                    status = '⚠ Incomplete'
+                else:
+                    status = 'Not started'
+            else:
+                sessions = 0
+                pages = 0
+                last_scrape = 'Never'
+                status = 'Not started'
+
+            print(f"{org_name:<30} {seed_count:<8} {sessions:<10} {pages:<10} {last_scrape:<20} {status:<10}")
+
+        print("=" * 100)
+
+        print("\n[D] View detailed history for an organization")
+        print("[R] Refresh")
+        print("[0] Back to main menu")
+
+        choice = self.get_input("\nSelect option")
+
+        if choice.lower() == 'd':
+            org_name = self.get_input("Enter organization name")
+            if org_name:
+                self.view_organization_detail(org_name)
+        elif choice.lower() == 'r':
+            self.view_organizations()
+
+    def view_organization_detail(self, organization: str):
+        """View detailed history for a specific organization"""
+        self.clear_screen()
+        self.print_header()
+        print(f"ORGANIZATION DETAIL: {organization}\n")
+
+        stats = self.session_manager.get_organization_stats(organization)
+
+        print("=" * 70)
+        print("SUMMARY")
+        print("=" * 70)
+        print(f"Total Sessions: {stats['total_sessions']}")
+        print(f"Completed Sessions: {stats['completed_sessions']}")
+        print(f"Total Pages Scraped: {stats['total_pages_scraped']}")
+
+        if stats['last_scrape_date']:
+            print(f"Last Scrape: {stats['last_scrape_date'].strftime('%Y-%m-%d %H:%M:%S')}")
+        else:
+            print("Last Scrape: Never")
+
+        if stats['last_successful_scrape']:
+            print(f"Last Successful: {stats['last_successful_scrape'].strftime('%Y-%m-%d %H:%M:%S')}")
+
+        # Get recent sessions
+        history = self.session_manager.get_organization_history(organization, limit=10)
+
+        if history:
+            print("\n" + "=" * 70)
+            print("RECENT SESSIONS (last 10)")
+            print("=" * 70)
+
+            for session in history:
+                start_time = datetime.fromisoformat(session['start_time'])
+                status_icon = {
+                    'completed': '✓',
+                    'failed': '✗',
+                    'interrupted': '⚠',
+                    'in_progress': '▶'
+                }.get(session['status'], '?')
+
+                print(f"\n{status_icon} {session['session_id']}")
+                print(f"   Started: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+                print(f"   Status: {session['status']}")
+                print(f"   Pages: {session['total_pages_scraped']} scraped")
+
+        input("\nPress ENTER to continue...")
+
+    def manage_seed_urls(self):
+        """View and manage seed URLs"""
+        self.clear_screen()
+        self.print_header()
+        print("MANAGE SEED URLs\n")
+
+        import csv
+        import pandas as pd
+
+        try:
+            seeds_df = pd.read_csv('config/url_seeds.csv')
+        except FileNotFoundError:
+            print("✗ url_seeds.csv not found")
+            input("\nPress ENTER to continue...")
+            return
+
+        # Group by organization
+        print("=" * 100)
+        print(f"{'Organization':<30} {'URL Type':<15} {'URL':<45} {'Depth':<8}")
+        print("=" * 100)
+
+        for org in seeds_df['ngo_name'].unique():
+            org_seeds = seeds_df[seeds_df['ngo_name'] == org]
+
+            for i, (_, row) in enumerate(org_seeds.iterrows()):
+                if i == 0:
+                    print(f"{org:<30} {row['url_type']:<15} {row['url'][:43]:<45} {row['depth_limit']:<8}")
+                else:
+                    print(f"{'':<30} {row['url_type']:<15} {row['url'][:43]:<45} {row['depth_limit']:<8}")
+
+            print("-" * 100)
+
+        print("\nOptions:")
+        print("  [A] Add seed URL")
+        print("  [E] Edit seed URL")
+        print("  [D] Delete seed URL")
+        print("  [0] Back")
+
+        choice = self.get_input("\nSelect option")
+
+        if choice.lower() == 'a':
+            self.add_seed_url()
+        elif choice.lower() == 'e':
+            print("\nEdit functionality: Manually edit config/url_seeds.csv")
+            input("Press ENTER to continue...")
+        elif choice.lower() == 'd':
+            print("\nDelete functionality: Manually edit config/url_seeds.csv")
+            input("Press ENTER to continue...")
+
+    def add_seed_url(self):
+        """Add a new seed URL"""
+        self.clear_screen()
+        self.print_header()
+        print("ADD SEED URL\n")
+
+        import csv
+
+        org_name = self.get_input("Organization name (must match ngo_list.csv)")
+        if not org_name:
+            return
+
+        url_type = self.get_input("URL type (e.g., homepage, publications)", "publications")
+        url = self.get_input("URL")
+        if not url:
+            return
+
+        depth_limit = self.get_input("Depth limit", "5")
+
+        # Confirm
+        print("\n" + "=" * 70)
+        print("NEW SEED URL:")
+        print(f"  Organization: {org_name}")
+        print(f"  Type: {url_type}")
+        print(f"  URL: {url}")
+        print(f"  Depth: {depth_limit}")
+        print("=" * 70)
+
+        if not self.confirm("\nAdd this seed URL?"):
+            print("Cancelled.")
+            return
+
+        # Append to CSV
+        try:
+            with open('config/url_seeds.csv', 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([org_name, url_type, url, depth_limit])
+
+            print("\n✓ Seed URL added successfully!")
+        except Exception as e:
+            print(f"\n✗ Error adding seed URL: {e}")
+
+        input("\nPress ENTER to continue...")
+
+    def add_new_organization(self):
+        """Add a new organization to the system"""
+        self.clear_screen()
+        self.print_header()
+        print("ADD NEW ORGANIZATION\n")
+
+        import csv
+
+        print("This will add a new organization to both ngo_list.csv and url_seeds.csv\n")
+
+        canonical_name = self.get_input("Canonical name (e.g., 'Hnutí DUHA')")
+        if not canonical_name:
+            return
+
+        website_url = self.get_input("Website URL (e.g., 'https://www.hnutiduha.cz')")
+        if not website_url:
+            return
+
+        organization_type = self.get_input("Organization type", "NGO")
+        category = self.get_input("Category (e.g., 'Climate activism')", "Climate")
+        scrape_priority = self.get_input("Scrape priority (1-10)", "5")
+
+        # Confirm
+        print("\n" + "=" * 70)
+        print("NEW ORGANIZATION:")
+        print(f"  Name: {canonical_name}")
+        print(f"  Website: {website_url}")
+        print(f"  Type: {organization_type}")
+        print(f"  Category: {category}")
+        print(f"  Priority: {scrape_priority}")
+        print("=" * 70)
+
+        if not self.confirm("\nAdd this organization?"):
+            print("Cancelled.")
+            return
+
+        try:
+            # Add to ngo_list.csv
+            with open('config/ngo_list.csv', 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    canonical_name,
+                    '',  # alternative_names
+                    website_url,
+                    organization_type,
+                    category,
+                    '',  # description
+                    scrape_priority
+                ])
+
+            # Add default seeds to url_seeds.csv
+            with open('config/url_seeds.csv', 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([canonical_name, 'homepage', website_url, 5])
+
+            print("\n✓ Organization added successfully!")
+            print("\nNext steps:")
+            print("  1. Use option [7] to add more seed URLs if needed")
+            print("  2. Use option [9] to generate pagination seeds")
+            print("  3. Use option [1] to start scraping")
+
+        except Exception as e:
+            print(f"\n✗ Error adding organization: {e}")
+
+        input("\nPress ENTER to continue...")
+
     def run(self):
         """Main menu loop"""
         while self.running:
@@ -519,10 +886,16 @@ class ScraperMenu:
             elif choice == "5":
                 self.delete_session()
             elif choice == "6":
-                self.generate_pagination_seeds()
+                self.view_organizations()
             elif choice == "7":
-                self.run_diagnostics()
+                self.manage_seed_urls()
             elif choice == "8":
+                self.add_new_organization()
+            elif choice == "9":
+                self.generate_pagination_seeds()
+            elif choice == "10":
+                self.run_diagnostics()
+            elif choice == "11":
                 self.view_statistics()
             elif choice == "0":
                 if self.confirm("\nExit scraper menu?"):

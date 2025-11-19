@@ -421,3 +421,74 @@ Output: {session['output_dir']}
             summary += f"Notes: {session['notes']}\n"
 
         return summary.strip()
+
+    def get_organization_history(self, organization: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Get scraping history for a specific organization
+
+        Args:
+            organization: Organization name
+            limit: Maximum number of sessions to return
+
+        Returns:
+            List of session dictionaries, most recent first
+        """
+        return self.list_sessions(organization=organization, limit=limit)
+
+    def get_organization_stats(self, organization: str) -> Dict[str, Any]:
+        """
+        Get aggregate statistics for an organization
+
+        Args:
+            organization: Organization name
+
+        Returns:
+            Dictionary with statistics
+        """
+        sessions = self.list_sessions(organization=organization, limit=1000)
+
+        if not sessions:
+            return {
+                'total_sessions': 0,
+                'completed_sessions': 0,
+                'total_pages_scraped': 0,
+                'last_scrape_date': None,
+                'last_successful_scrape': None
+            }
+
+        completed = [s for s in sessions if s['status'] == 'completed']
+
+        total_pages = sum(s['total_pages_scraped'] for s in sessions)
+
+        # Get most recent scrape
+        last_scrape = sessions[0] if sessions else None
+        last_scrape_date = datetime.fromisoformat(last_scrape['start_time']) if last_scrape else None
+
+        # Get most recent successful scrape
+        last_successful = completed[0] if completed else None
+        last_successful_date = datetime.fromisoformat(last_successful['start_time']) if last_successful else None
+
+        return {
+            'total_sessions': len(sessions),
+            'completed_sessions': len(completed),
+            'total_pages_scraped': total_pages,
+            'last_scrape_date': last_scrape_date,
+            'last_successful_scrape': last_successful_date
+        }
+
+    def get_all_organizations(self) -> List[str]:
+        """
+        Get list of all organizations that have been scraped
+
+        Returns:
+            List of organization names
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT DISTINCT organization
+                FROM sessions
+                WHERE organization IS NOT NULL
+                ORDER BY organization
+            """)
+            return [row[0] for row in cursor.fetchall()]
