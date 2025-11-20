@@ -183,13 +183,28 @@ python -m src.scraper
 
 **Scrape specific NGOs:**
 ```bash
-python -m src.scraper --filter "Hnutí DUHA" "Arnika" "Greenpeace ČR"
+python -m src.scraper --filter "Hnuti DUHA" "Arnika" "Greenpeace CR"
 ```
 
 **Resume interrupted scraping:**
 ```bash
 python -m src.scraper --resume
 ```
+
+**Parallel scraping (faster - scrapes multiple NGOs simultaneously):**
+```bash
+# Run with default 4 parallel workers
+python -m src.scraper --parallel
+
+# Specify number of parallel workers
+python -m src.scraper --parallel --max-workers 8
+
+# Combine with filters
+python -m src.scraper --parallel --max-workers 6 --filter "Hnuti DUHA" "Arnika" "Frank Bold"
+```
+
+**Note on Parallel Scraping:**
+Since each NGO has a different domain and rate limits are per-domain, you can safely scrape multiple NGOs simultaneously without violating rate limits. Parallel mode can significantly speed up scraping when working with many organizations. Recommended: 4-8 workers depending on your system and network capacity.
 
 **Use custom configuration:**
 ```bash
@@ -214,6 +229,12 @@ python scripts/test_dataset_scraper.py --filter "Hnuti DUHA" "Arnika"
 
 # Specify custom date for dataset folder
 python scripts/test_dataset_scraper.py --date 20240115
+
+# Run in parallel mode (faster - scrapes multiple NGOs simultaneously)
+python scripts/test_dataset_scraper.py --parallel --max-workers 4
+
+# Combine parallel mode with filters
+python scripts/test_dataset_scraper.py --parallel --max-workers 6 --filter "Hnuti DUHA" "Arnika" "Frank Bold"
 ```
 
 **What it does:**
