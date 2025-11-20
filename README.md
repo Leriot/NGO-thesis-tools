@@ -183,13 +183,28 @@ python -m src.scraper
 
 **Scrape specific NGOs:**
 ```bash
-python -m src.scraper --filter "Hnutí DUHA" "Arnika" "Greenpeace ČR"
+python -m src.scraper --filter "Hnuti DUHA" "Arnika" "Greenpeace CR"
 ```
 
 **Resume interrupted scraping:**
 ```bash
 python -m src.scraper --resume
 ```
+
+**Parallel scraping (faster - scrapes multiple NGOs simultaneously):**
+```bash
+# Run with default 4 parallel workers
+python -m src.scraper --parallel
+
+# Specify number of parallel workers
+python -m src.scraper --parallel --max-workers 8
+
+# Combine with filters
+python -m src.scraper --parallel --max-workers 6 --filter "Hnuti DUHA" "Arnika" "Frank Bold"
+```
+
+**Note on Parallel Scraping:**
+Since each NGO has a different domain and rate limits are per-domain, you can safely scrape multiple NGOs simultaneously without violating rate limits. Parallel mode can significantly speed up scraping when working with many organizations. Recommended: 4-8 workers depending on your system and network capacity.
 
 **Use custom configuration:**
 ```bash
@@ -201,6 +216,57 @@ python -m src.scraper --config my_config.yaml --ngo-list my_ngos.csv
 python -m src.scraper --help
 ```
 
+### Test Dataset Scraper (For Local Testing)
+
+Create a smaller test dataset for testing methods and fine-tuning before running full scrapes:
+
+```bash
+# Scrape test dataset from all NGOs (30 HTML pages, 20 PDFs each)
+python scripts/test_dataset_scraper.py
+
+# Scrape test dataset from specific NGOs
+python scripts/test_dataset_scraper.py --filter "Hnuti DUHA" "Arnika"
+
+# Specify custom date for dataset folder
+python scripts/test_dataset_scraper.py --date 20240115
+
+# Run in parallel mode (faster - scrapes multiple NGOs simultaneously)
+python scripts/test_dataset_scraper.py --parallel --max-workers 4
+
+# Combine parallel mode with filters
+python scripts/test_dataset_scraper.py --parallel --max-workers 6 --filter "Hnuti DUHA" "Arnika" "Frank Bold"
+```
+
+**What it does:**
+- ✅ Scrapes limited data (30 HTML pages, 20 PDFs per NGO)
+- ✅ Saves to `data/test_dataset_{date}/` instead of `data/raw/`
+- ✅ Uses same folder structure: `{org_name}/pages/html/` and `{org_name}/documents/`
+- ✅ Stops after scraping (no automatic cleanup)
+- ✅ Perfect for testing data cleanup methods locally
+
+**Output structure:**
+```
+data/test_dataset_20240115/
+├── Hnuti DUHA/
+│   ├── pages/html/          # Up to 30 HTML files
+│   ├── documents/           # Up to 20 PDFs
+│   ├── links.json
+│   └── metadata.json
+├── Arnika/
+│   ├── pages/html/
+│   ├── documents/
+│   ├── links.json
+│   └── metadata.json
+└── metadata/
+    └── overall_test_stats.json
+```
+
+**Workflow:**
+1. Create test dataset: `python scripts/test_dataset_scraper.py --filter "Hnuti DUHA"`
+2. Test your cleanup methods on the small dataset
+3. Fine-tune parameters and verify results
+4. Once satisfied, run full pipeline on complete data
+
 ### Programmatic Usage
 
 ```python
@@ -211,7 +277,7 @@ scraper = NGOScraper(config_path='config/scraping_rules.yaml')
 
 # Scrape a single NGO
 stats = scraper.scrape_ngo(
-    ngo_name="Hnutí DUHA",
+    ngo_name="Hnuti DUHA",
     seed_urls=[
         {'url': 'https://www.hnutiduha.cz', 'type': 'homepage', 'depth_limit': 3}
     ],
@@ -223,7 +289,7 @@ stats = scraper.scrape_ngo(
 scraper.scrape_from_config(
     ngo_list_file='config/ngo_list.csv',
     url_seeds_file='config/url_seeds.csv',
-    ngo_filter=['Hnutí DUHA', 'Arnika']  # Optional filter
+    ngo_filter=['Hnuti DUHA', 'Arnika']  # Optional filter
 )
 ```
 
